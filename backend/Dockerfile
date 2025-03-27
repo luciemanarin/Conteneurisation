@@ -1,8 +1,9 @@
 # Image de base PHP-FPM alpine pour optimiser la taille
+# Impact : réduction significative de la taille de l'image
 FROM php:8.2-fpm-alpine
 
 # Installation des extensions PHP et nettoyage en une seule couche
-# Impact : réduction de la taille de l'image en combinant les commandes
+# Impact : réduction du nombre de layers et optimisation
 RUN docker-php-ext-install pdo pdo_mysql \
     && rm -rf /var/cache/apk/* \
     && rm -rf /tmp/*
