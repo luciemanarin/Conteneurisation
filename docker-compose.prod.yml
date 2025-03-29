@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   frontend:
     image: lmanarin/frontend:latest
@@ -12,46 +10,69 @@ services:
 
   backend:
     image: lmanarin/backend:latest
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME}
+      - PHP_FPM_PM=dynamic
+      - PHP_FPM_PM_MAX_CHILDREN=50
+      - PHP_FPM_PM_START_SERVERS=5
     networks:
       - app-network
     depends_on:
       - mysql
     restart: always
-    environment:
-      - PHP_FPM_PM=dynamic
-      - PHP_FPM_PM_MAX_CHILDREN=50
-      - PHP_FPM_PM_START_SERVERS=5
 
   mysql:
     image: mysql:8.0
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./.my.cnf:/etc/mysql/conf.d/exporter.cnf
     networks:
       - app-network
+      - monitoring
     restart: always
 
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:0.11.0
+    container_name: nginx-exporter
+    ports:
+      - "9113:9113"
+    command:
+      - -nginx.scrape-uri=http://frontend/nginx_status
     networks:
       - monitoring
+      - app-network
+    depends_on:
+      - frontend
     restart: always
 
   mysqld-exporter:
     image: prom/mysqld-exporter
-    environment:
-      - DATA_SOURCE_NAME=${MYSQL_EXPORTER_USER}:${MYSQL_EXPORTER_PASSWORD}@(mysql:3306)/
+    container_name: mysqld-exporter
+    ports:
+      - "9104:9104"
+    volumes:
+      - ./.my.cnf:/etc/mysqld-exporter/my.cnf
     networks:
       - monitoring
+      - app-network
+    depends_on:
+      - mysql
     restart: always
 
 networks:
   app-network:
+    name: docker-project_app-network
   monitoring:
+    name: docker-project_monitoring
 
 volumes:
   mysql_data:
+    name: docker-project_mysql_data
