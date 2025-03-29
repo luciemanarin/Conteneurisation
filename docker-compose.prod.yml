@@ -7,6 +7,14 @@ services:
       - app-network
       - monitoring
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
 
   backend:
     image: lmanarin/backend:latest
@@ -16,13 +24,23 @@ services:
       - DB_PASS=${DB_PASS}
       - DB_NAME=${DB_NAME}
       - PHP_FPM_PM=dynamic
-      - PHP_FPM_PM_MAX_CHILDREN=50
+      - PHP_FPM_PM_MAX_CHILDREN=30
       - PHP_FPM_PM_START_SERVERS=5
+      - PHP_FPM_PM_MIN_SPARE_SERVERS=5
+      - PHP_FPM_PM_MAX_SPARE_SERVERS=10
     networks:
       - app-network
     depends_on:
       - mysql
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
 
   mysql:
     image: mysql:8.0
@@ -38,6 +56,14 @@ services:
       - app-network
       - monitoring
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.2'
+          memory: 256M
 
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:0.11.0
@@ -52,6 +78,14 @@ services:
     depends_on:
       - frontend
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 64M
+        reservations:
+          cpus: '0.1'
+          memory: 32M
 
   mysqld-exporter:
     image: prom/mysqld-exporter
@@ -66,6 +100,14 @@ services:
     depends_on:
       - mysql
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 64M
+        reservations:
+          cpus: '0.1'
+          memory: 32M
 
 networks:
   app-network:
