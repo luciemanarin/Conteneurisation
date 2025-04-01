@@ -4,11 +4,29 @@ services:
     ports:
       - "80:80"
     volumes:
-    - ./frontend/html:/usr/share/nginx/html
-
+      - ./frontend/html:/usr/share/nginx/html
+      - ./backend:/var/www/html  # Lier le dossier backend pour accéder aux fichiers PHP
     networks:
       - app-network
       - monitoring
+    restart: always
+    depends_on:
+      - php  # Assurez-vous que frontend dépend de php
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  php:
+    image: php:7.4-fpm  # Utiliser une image PHP-FPM
+    volumes:
+      - ./backend:/var/www/html  # Monter le dossier backend pour exécuter PHP
+    networks:
+      - app-network
     restart: always
     deploy:
       resources:
