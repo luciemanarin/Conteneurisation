@@ -3,6 +3,9 @@ services:
     image: lmanarin/frontend:latest
     ports:
       - "80:80"
+    volumes:
+    - ./frontend/html:/usr/share/nginx/html
+
     networks:
       - app-network
       - monitoring
@@ -28,6 +31,8 @@ services:
       - PHP_FPM_PM_START_SERVERS=5
       - PHP_FPM_PM_MIN_SPARE_SERVERS=5
       - PHP_FPM_PM_MAX_SPARE_SERVERS=10
+    volumes:
+      - ./backend:/var/www/html
     networks:
       - app-network
     depends_on:
@@ -51,7 +56,7 @@ services:
       MYSQL_PASSWORD: ${DB_PASS}
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./.my.cnf:/etc/mysql/conf.d/exporter.cnf
+      - ./database:/docker-entrypoint-initdb.d
     networks:
       - app-network
       - monitoring
@@ -92,8 +97,8 @@ services:
     container_name: mysqld-exporter
     ports:
       - "9104:9104"
-    volumes:
-      - ./.my.cnf:/etc/mysqld-exporter/my.cnf
+    environment:
+      - DATA_SOURCE_NAME=exporter:Luciole11@@tcp(mysql:3306)/
     networks:
       - monitoring
       - app-network
