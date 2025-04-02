@@ -1,17 +1,13 @@
 <?php
+$host = getenv('DB_HOST');
+$dbname = getenv('DB_NAME');
+$user = getenv('DB_USER');
+$pass = getenv('DB_PASS');
+
 try {
-    $host = getenv('DB_HOST') ?: 'mysql';
-    $dbname = getenv('DB_NAME') ?: 'businessCare_docker';
-    $user = getenv('DB_USER') ?: 'root';
-    $pass = getenv('DB_PASS') ?: 'root';
-    
-    $pdo = new PDO(
-        "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
-        $user,
-        $pass,
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-    );
-    echo "Connexion à la base de données réussie !";
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $user, $pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    echo "Connexion réussie à la base de données !";
 } catch (PDOException $e) {
     echo "Erreur de connexion : " . $e->getMessage();
 }

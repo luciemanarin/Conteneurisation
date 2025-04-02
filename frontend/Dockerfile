@@ -1,17 +1,21 @@
-# Utilisation d'une image légère nginx alpine pour réduire la taille
-# Impact : optimisation de la taille de l'image et des performances
+# Utilisation d'une image légère nginx alpine
 FROM nginx:alpine
 
-# Copie des fichiers dans le répertoire web de nginx
-# Impact : seuls les fichiers nécessaires sont copiés
-# Permet une meilleure gestion des ressources
-COPY . /usr/share/nginx/html
+# Installation de PHP et des extensions nécessaires
+RUN apk add --no-cache php81 \
+    php81-fpm \
+    php81-pdo \
+    php81-pdo_mysql
 
-# Configuration de nginx pour exposer les métriques
-# Impact : permet la surveillance par Prometheus
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Configuration de PHP-FPM
+RUN mkdir -p /run/php && \
+    sed -i 's/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g' /etc/php81/php.ini
 
-# Exposition du port 80 pour accès HTTP
-# Impact : sécurité - seul le port nécessaire est exposé
-# Bonne pratique de sécurité Docker
+# Copie des fichiers de l'application
+COPY ./html /usr/share/nginx/html
+
+# Copie de la configuration Nginx
+COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+
+# Exposition du port 80
 EXPOSE 80

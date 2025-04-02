@@ -3,10 +3,39 @@ services:
     image: lmanarin/frontend:latest
     ports:
       - "80:80"
+    volumes:
+      - ./frontend/html:/usr/share/nginx/html
+      - ./backend:/var/www/html  
     networks:
       - app-network
       - monitoring
     restart: always
+    depends_on:
+      - php  
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  php:
+    image: php:7.4-fpm 
+    volumes:
+      - ./backend:/var/www/html 
+    networks:
+      - app-network
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
 
   backend:
     image: lmanarin/backend:latest
@@ -14,15 +43,27 @@ services:
       - DB_HOST=${DB_HOST}
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
-      - DB_NAME=${DB_NAME}
-      - PHP_FPM_PM=dynamic
-      - PHP_FPM_PM_MAX_CHILDREN=50
-      - PHP_FPM_PM_START_SERVERS=5
+      - DB_NAME=${DB_NAME} 
+      - PHP_FPM_PM=dynamic # pour le mode dynamique
+      - PHP_FPM_PM_MAX_CHILDREN=30 # nbr max process enfants
+      - PHP_FPM_PM_START_SERVERS=5 # nbr process enfants au démarrage
+      - PHP_FPM_PM_MIN_SPARE_SERVERS=5 # nbr min process enfants
+      - PHP_FPM_PM_MAX_SPARE_SERVERS=10
+    volumes:
+      - ./backend:/var/www/html
     networks:
       - app-network
     depends_on:
       - mysql
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1' #10% du cpu
+          memory: 128M 
 
   mysql:
     image: mysql:8.0
@@ -33,11 +74,19 @@ services:
       MYSQL_PASSWORD: ${DB_PASS}
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./.my.cnf:/etc/mysql/conf.d/exporter.cnf
+      - ./database:/docker-entrypoint-initdb.d
     networks:
       - app-network
       - monitoring
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.2'
+          memory: 256M
 
   nginx-exporter:
     image: nginx/nginx-prometheus-exporter:0.11.0
@@ -52,20 +101,39 @@ services:
     depends_on:
       - frontend
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 64M
+        reservations:
+          cpus: '0.1'
+          memory: 32M
 
   mysqld-exporter:
     image: prom/mysqld-exporter
     container_name: mysqld-exporter
     ports:
       - "9104:9104"
+    environment:
+      - DATA_SOURCE_NAME=lucieM:root@(mysql:3306)   
     volumes:
-      - ./.my.cnf:/etc/mysqld-exporter/my.cnf
+      - ./.my.cnf:/.my.cnf
+ 
     networks:
       - monitoring
       - app-network
     depends_on:
       - mysql
     restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 64M
+        reservations:
+          cpus: '0.1'
+          memory: 32M
 
 networks:
   app-network:

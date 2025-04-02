@@ -5,7 +5,19 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./rules.yml:/etc/prometheus/rules.yml
       - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml" # fichier de configuration
+      - "--storage.tsdb.path=/prometheus" 
+      - "--storage.tsdb.retention.time=15d" 
+      - "--web.enable-lifecycle" # permet de recharger la configuration sans redémarrer le conteneur
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
     networks:
       - monitoring
       - app-network
@@ -21,6 +33,10 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
+    deploy:
+      resources:
+        limits:
+          memory: 1G 
     networks:
       - monitoring
     restart: always
@@ -28,17 +44,20 @@ services:
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     privileged: true
-
     ports:
       - "8081:8080"
     volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
+      - /:/rootfs:ro 
+      - /var/run:/var/run:rw 
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     networks:
       - monitoring
-  
+
   portainer:
     image: portainer/portainer-ce
     ports:
@@ -46,21 +65,12 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     networks:
       - monitoring
-    restart: always
-
-
-
-  mysqld-exporter:
-    image: prom/mysqld-exporter
-    ports:
-      - "9104:9104"
-    environment:
-      - DATA_SOURCE_NAME=exporter:Luciole11@@(mysql:3306)/
-    networks:
-      - monitoring
-      - app-network
     restart: always
 
   node-exporter:
@@ -68,13 +78,17 @@ services:
     ports:
       - "9100:9100"
     volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
+      - /proc:/host/proc:ro #proc de l'hôte monter en lecture, proc: sytème de fichier virtuel contient les infos en réel sur les processus
+      - /sys:/host/sys:ro # lecture
+      - /:/rootfs:ro # lecturedu système de fichier racine
     command:
-      - "--path.procfs=/host/proc"
+      - "--path.procfs=/host/proc" #sf proc chemin hôte
       - "--path.sysfs=/host/sys"
       - "--path.rootfs=/rootfs"
+    deploy:
+      resources:
+        limits:
+          memory: 128M
     networks:
       - monitoring
     restart: always
