@@ -3,10 +3,10 @@
 FROM php:8.2-fpm-alpine
 
 # Installation des extensions PHP et nettoyage en une seule couche
-# Impact : réduction du nombre de layers et optimisation
-RUN docker-php-ext-install pdo pdo_mysql \
-    && rm -rf /var/cache/apk/* \
-    && rm -rf /tmp/*
+# Impact : réduction du nombre d'images et optimisation
+RUN docker-php-ext-install pdo pdo_mysql \ 
+    && rm -rf /var/cache/apk/* \ 
+    && rm -rf /tmp/*    
 
 # Définition du répertoire de travail
 # Impact : organisation claire des fichiers  
@@ -20,6 +20,6 @@ COPY ./frontend /var/www/html
 # Impact : sécurité et bon fonctionnement
 RUN chown -R www-data:www-data /var/www/html
 
-# Exposition du port 9000 pour accès PHP-FPM
+# Exposition du port 9000 pour accès PHP-FPM,
 # Impact : sécurité - seul le port nécessaire est exposé
 EXPOSE 9000 

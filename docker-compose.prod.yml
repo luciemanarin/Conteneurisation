@@ -5,13 +5,13 @@ services:
       - "80:80"
     volumes:
       - ./frontend/html:/usr/share/nginx/html
-      - ./backend:/var/www/html  # Lier le dossier backend pour accéder aux fichiers PHP
+      - ./backend:/var/www/html  
     networks:
       - app-network
       - monitoring
     restart: always
     depends_on:
-      - php  # Assurez-vous que frontend dépend de php
+      - php  
     deploy:
       resources:
         limits:
@@ -22,9 +22,9 @@ services:
           memory: 128M
 
   php:
-    image: php:7.4-fpm  # Utiliser une image PHP-FPM
+    image: php:7.4-fpm 
     volumes:
-      - ./backend:/var/www/html  # Monter le dossier backend pour exécuter PHP
+      - ./backend:/var/www/html 
     networks:
       - app-network
     restart: always
@@ -43,11 +43,11 @@ services:
       - DB_HOST=${DB_HOST}
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
-      - DB_NAME=${DB_NAME}
-      - PHP_FPM_PM=dynamic
-      - PHP_FPM_PM_MAX_CHILDREN=30
-      - PHP_FPM_PM_START_SERVERS=5
-      - PHP_FPM_PM_MIN_SPARE_SERVERS=5
+      - DB_NAME=${DB_NAME} 
+      - PHP_FPM_PM=dynamic # pour le mode dynamique
+      - PHP_FPM_PM_MAX_CHILDREN=30 # nbr max process enfants
+      - PHP_FPM_PM_START_SERVERS=5 # nbr process enfants au démarrage
+      - PHP_FPM_PM_MIN_SPARE_SERVERS=5 # nbr min process enfants
       - PHP_FPM_PM_MAX_SPARE_SERVERS=10
     volumes:
       - ./backend:/var/www/html
@@ -62,8 +62,8 @@ services:
           cpus: '0.5'
           memory: 256M
         reservations:
-          cpus: '0.1'
-          memory: 128M
+          cpus: '0.1' #10% du cpu
+          memory: 128M 
 
   mysql:
     image: mysql:8.0
@@ -116,7 +116,10 @@ services:
     ports:
       - "9104:9104"
     environment:
-      - DATA_SOURCE_NAME=exporter:Luciole11@@tcp(mysql:3306)/
+      - DATA_SOURCE_NAME=lucieM:root@(mysql:3306)   
+    volumes:
+      - ./.my.cnf:/.my.cnf
+ 
     networks:
       - monitoring
       - app-network

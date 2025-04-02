@@ -8,10 +8,10 @@ services:
       - ./rules.yml:/etc/prometheus/rules.yml
       - prometheus_data:/prometheus
     command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
-      - "--storage.tsdb.path=/prometheus"
-      - "--storage.tsdb.retention.time=15d"
-      - "--web.enable-lifecycle"
+      - "--config.file=/etc/prometheus/prometheus.yml" # fichier de configuration
+      - "--storage.tsdb.path=/prometheus" 
+      - "--storage.tsdb.retention.time=15d" 
+      - "--web.enable-lifecycle" # permet de recharger la configuration sans redémarrer le conteneur
     deploy:
       resources:
         limits:
@@ -36,7 +36,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1G
+          memory: 1G 
     networks:
       - monitoring
     restart: always
@@ -47,8 +47,8 @@ services:
     ports:
       - "8081:8080"
     volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
+      - /:/rootfs:ro 
+      - /var/run:/var/run:rw 
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
     deploy:
@@ -78,11 +78,11 @@ services:
     ports:
       - "9100:9100"
     volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
+      - /proc:/host/proc:ro #proc de l'hôte monter en lecture, proc: sytème de fichier virtuel contient les infos en réel sur les processus
+      - /sys:/host/sys:ro # lecture
+      - /:/rootfs:ro # lecturedu système de fichier racine
     command:
-      - "--path.procfs=/host/proc"
+      - "--path.procfs=/host/proc" #sf proc chemin hôte
       - "--path.sysfs=/host/sys"
       - "--path.rootfs=/rootfs"
     deploy:

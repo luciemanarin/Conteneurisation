@@ -1,4 +1,4 @@
-# Utilisation de l'image Nginx officielle
+# Utilisation de l'image Nginx officielle, pour l'optimisation de la taille
 FROM nginx:latest
 
 # Suppression de la configuration par défaut de Nginx
